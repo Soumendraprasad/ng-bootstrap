@@ -18,5 +18,11 @@ jobs:
     - name: Run the package with secret
       run: |
         echo "${{ secrets.secret }}" | gocodeo-generate generate src/accordion/accordion.module.ts
-      env:
-        secret: ${{ secrets.secret }}
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "soumendraroman@gamil.com"
+        git config --local user.name "Soumendraprasad"
+        git add src/accordion/gocodeo_tests/
+        git commit -m "Generate tests using gocodeo"
+        git push
