@@ -1,7 +1,7 @@
 name: Generate Tests
 
 on:
-  merge_group:
+  push:
     branches: [main]
 
 jobs:
