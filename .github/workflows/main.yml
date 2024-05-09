@@ -20,9 +20,10 @@ jobs:
         echo "${{ secrets.secret }}" | gocodeo-generate generate src/accordion/accordion.module.ts
 
     - name: Commit and push changes
-      run: |
-        git config --local user.email "soumendraroman@gamil.com"
-        git config --local user.name "Soumendraprasad"
-        git add src/accordion/gocodeo_tests/
-        git commit -m "Generate tests using gocodeo"
-        git push
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Generate tests using gocodeo"
+        commit_options: "--no-verify"
+        branch: ${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
