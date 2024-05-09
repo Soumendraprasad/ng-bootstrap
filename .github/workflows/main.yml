@@ -12,7 +12,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: List Folders
+     - name: List Folders in src/accordion
       run: |
-        ls -d src/accordion*/ | sed 's#src/##' > folders.txt
-        cat folders.txt
+        ls -d src/accordion/*/ | sed 's#src/accordion/##' > accordion_folders.txt
+        cat accordion_folders.txt
