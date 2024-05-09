@@ -23,7 +23,7 @@ jobs:
       env:
         PAT: ${{ secrets.PAT }}
       run: |
-        git config --local user.email "soumendra@gmail.com"
+        git config --local user.email "soumendraroman@gmail.com"
         git config --local user.name "Soumendraprasad"
         git add src/accordion/gocodeo_tests/
         git commit -m "Generate tests using gocodeo"
