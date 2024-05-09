@@ -11,9 +11,10 @@ jobs:
     steps:
     - name: Print Secret Key
       run: pip install gocodeo==0.0.13
-    - name: List Folders
+     - name: List Folders
       run: |
-        ls -d */ | sed 's#/##' > folders.txt
+        cd Soumendraprasad/ng-bootstrap
+        ls -d */ > folders.txt
         cat folders.txt
 
       
