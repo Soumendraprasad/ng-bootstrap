@@ -1,16 +1,13 @@
-name: Hello World
+name: Print Secret
 
 on:
   push:
     branches: [main]
 
 jobs:
-  print-hello:
+  print-secret:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Print Hello World
-      run: echo "Hello, world!"
-
-    - name: Print secret 
-      run: echo "Hello, world2!"
+    - name: Print Secret Key
+      run: echo "Secret key"
