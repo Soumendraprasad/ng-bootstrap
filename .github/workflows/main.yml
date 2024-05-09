@@ -1,4 +1,4 @@
-name: Generate Tests
+name: Generate Tests checker
 
 on:
   pull_request:
