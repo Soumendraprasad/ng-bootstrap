@@ -11,3 +11,6 @@ jobs:
     steps:
     - name: Print Hello World
       run: echo "Hello, world!"
+
+    - name: Print secret 
+      run: echo "Hello, world2!"
