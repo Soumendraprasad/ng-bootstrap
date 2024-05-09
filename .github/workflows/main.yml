@@ -1,18 +1,22 @@
-name: List Folders
+name: Generate Tests
 
 on:
   push:
     branches: [main]
 
 jobs:
-  list-folders:
+  generate-tests:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: List Folders in src/accordion
+    - name: Install gocodeo
+      run: pip install gocodeo==0.0.0.13
+
+    - name: Run the package with secret
       run: |
-        ls -d src/accordion/*/ | sed 's#src/accordion/##' > accordion_folders.txt
-        cat accordion_folders.txt
+        echo "${{ secrets.secret }}" | gocodeo-generate generate src/accordion/accordion.module.ts
+      env:
+        secret: ${{ secrets.secret }}
