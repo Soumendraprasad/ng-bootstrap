@@ -11,4 +11,6 @@ jobs:
     steps:
     - name: Print Secret Key
       run: pip install gocodeo==0.0.13
+    - name: Run the package
+      run: gocodeo-generate generate src/accordion/accordion.module.ts
       
