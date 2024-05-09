@@ -14,5 +14,5 @@ jobs:
 
     - name: List Folders
       run: |
-        ls -d src/*/ | sed 's#src/##' > folders.txt
+        ls -d src/accordion*/ | sed 's#src/##' > folders.txt
         cat folders.txt
