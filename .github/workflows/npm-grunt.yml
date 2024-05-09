@@ -10,5 +10,5 @@ jobs:
 
     steps:
     - name: Print Secret Key
-      run: echo "${{secrets.SECRET}}"
+      run: echo "${{secrets.secret}}"
       
