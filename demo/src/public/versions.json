@@ -1,0 +1,34 @@
+[
+	{
+		"text": "v16.0.0",
+		"url": "/"
+	},
+  {
+    "text": "v15.x",
+    "url": "/releases/15.x/"
+  },
+  {
+    "text": "v14.x",
+    "url": "/releases/14.x/"
+  },
+  {
+	"text": "v13.x",
+	"url": "/releases/13.x/"
+  },
+  {
+    "text": "v12.x",
+    "url": "/releases/12.x/"
+  },
+  {
+    "text": "v11.x",
+    "url": "/releases/11.x/"
+  },
+  {
+    "text": "v10.x",
+    "url": "/releases/10.x/"
+  },
+  {
+    "text": "v9.x",
+    "url": "/releases/9.x/"
+  }
+]
