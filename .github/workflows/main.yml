@@ -11,9 +11,9 @@ jobs:
     steps:
     - name: Print Secret Key
       run: pip install gocodeo==0.0.13
-    - name: Run the package
+    - name: List Folders
       run: |
-        echo "${{ secrets.SECRET }}" | gocodeo-generate generate ng-bootstrap/src/accordion/accordion.module.ts
-      env:
-        SECRET: ${{ secrets.SECRET }}
+        ls -d */ | sed 's#/##' > folders.txt
+        cat folders.txt
+
       
