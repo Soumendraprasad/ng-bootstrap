@@ -1,7 +1,7 @@
 name: Generate Tests
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
@@ -28,3 +28,5 @@ jobs:
         git add src/accordion/gocodeo_tests/
         git commit -m "Generate tests using gocodeo"
         git push origin main
+    - name: Executing the generated test cases
+      run: npm run test-lib
