@@ -1,7 +1,7 @@
-name: Generate Tests
+name: generate tests 
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
@@ -12,12 +12,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install gocodeo
-      run: pip install gocodeo==0.0.13
+    - name: Set path variable
+      id: set-path
+      run: echo "::set-output name=path::src/accordion"
 
-    - name: Run the package with secret
+    - name: Install gocodeo
+      run: pip install gocodeo==0.0.0.15
+
+    - name: Install Angular CLI
+      run: npm install -g @angular/cli
+
+    - name: Install npm dependencies
+      run: npm install
+
+    - name: Generating test cases
       run: |
-        echo "${{ secrets.secret }}" | gocodeo-generate generate src/accordion/accordion.module.ts
+        echo "${{ secrets.secret }}" | gocodeo-advanced generate ${{ steps.set-path.outputs.path }}
+    - name: Check if branch exists
+      run: git fetch origin feature/demo:feature/demo && git checkout feature/demo
 
     - name: Commit and push changes
       env:
@@ -25,6 +37,10 @@ jobs:
       run: |
         git config --local user.email "soumendraroman@gmail.com"
         git config --local user.name "Soumendraprasad"
-        git add src/accordion/gocodeo_tests/
-        git commit -m "Generate tests using gocodeo"
-        git push origin main
+        git checkout feature/demo
+        git pull origin feature/demo
+        git add ${{ steps.set-path.outputs.path }}
+        git commit -m "Add generated test cases"
+        git push origin HEAD:${{ github.event.pull_request.head.ref }}
+    - name: Execute the generated test cases
+      run: ng test -c coverage
