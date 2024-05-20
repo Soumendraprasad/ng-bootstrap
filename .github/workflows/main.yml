@@ -23,7 +23,7 @@ jobs:
       run: yarn global add @angular/cli
 
     - name: Install npm dependencies
-      run: npm install
+      run: yarn install
 
     - name: Generating test cases
       run: |
