@@ -20,7 +20,7 @@ jobs:
       run: pip install gocodeo==0.0.0.15
 
     - name: Install Angular CLI
-      run: yarn install -g @angular/cli
+      run: yarn global add @angular/cli
 
     - name: Install npm dependencies
       run: npm install
