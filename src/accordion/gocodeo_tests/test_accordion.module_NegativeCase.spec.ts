@@ -1,303 +1,190 @@
-import {  TestBed, ComponentFixture, fakeAsync, tick  } from '@angular/core/testing';
-import {  NgbAccordionModule, NgbAccordionConfig  } from '../accordion.module';
-import {  NgbAccordionDirective, NgbPanelChangeEvent  } from '../accordion.directive';
+import {  TestBed, ComponentFixture  } from '@angular/core/testing';
+import {  NgbAccordionModule  } from '../accordion.module';
+import {  NgbAccordionDirective  } from '../accordion.directive';
 import {  By  } from '@angular/platform-browser';
+import {
+NgbAccordionItem,
+NgbAccordionHeader,
+NgbAccordionBody,
+NgbAccordionButton,
+} from '../accordion.directive';
 
-describe('NgbAccordionModule: Negative Case Scenarios', () => {
+describe('NgbAccordionModule Negative Scenarios', () => {
   let fixture: ComponentFixture<any>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NgbAccordionModule],
-      declarations: [NgbAccordionDirective],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
+    });
+
     fixture = TestBed.createComponent(NgbAccordionDirective);
   });
 
-  // Test Case 1: Missing Import Statements
-  it('should fail compilation if @angular/core or ./accordion.directive are not imported', () => {
+  // Test 1: Missing Module Import
+  it('should throw error if NgbAccordionModule is not imported', () => {
+    const moduleWithoutNgbAccordion = TestBed.configureTestingModule({
+      imports: [],
+    });
+
     expect(() => {
-      TestBed.configureTestingModule({
-        imports: [NgbAccordionModule],
-      }).compileComponents();
-    }).toThrowError(/Missing module: @angular\/core/);
+      moduleWithoutNgbAccordion.compileComponents();
+    }).toThrowError(/NgbAccordionModule.*not imported.*?/);
   });
 
-  // Test Case 2: Missing Export Statements
-  it('should fail compilation if accordion directives are not exported', () => {
+  // Test 2: Incorrect Directive Usage
+  it('should throw error if NgbAccordionItem is used incorrectly', () => {
+    const incorrectUsageTemplate = `
+      <div>
+        <ngb-accordion-item>
+          <ngb-accordion-header></ngb-accordion-header>
+          <ngb-accordion-body></ngb-accordion-body>
+        </ngb-accordion-item>
+      </div>
+    `;
+    fixture.nativeElement.innerHTML = incorrectUsageTemplate;
     expect(() => {
-      TestBed.configureTestingModule({
-        imports: [NgbAccordionModule],
-        declarations: [NgbAccordionDirective],
-      }).compileComponents();
-    }).toThrowError(/Missing export: NgbAccordionButton/);
+      fixture.detectChanges();
+    }).toThrowError(/NgbAccordionItem.*must be inside NgbAccordion.*?/);
   });
 
-  // Test Case 3: Incorrect Directive Array
-  it('should fail compilation if NGB_ACCORDION_DIRECTIVES includes unrelated directives or excludes essentials', () => {
-    expect(() => {
-      @NgModule({
-        imports: [NgbAccordionModule],
-        declarations: [NgbAccordionDirective],
-        providers: [NgbAccordionConfig],
-      })
-      class InvalidAccordionModule {}
-      TestBed.configureTestingModule({
-        imports: [InvalidAccordionModule],
-      }).compileComponents();
-    }).toThrowError(/Missing export: NgbAccordionButton/);
-  });
-
-  // Test Case 4: Empty NgbAccordionModule Class
-  it('should fail compilation if NgbAccordionModule class is empty', () => {
-    expect(() => {
-      @NgModule()
-      class EmptyNgbAccordionModule {}
-      TestBed.configureTestingModule({
-        imports: [EmptyNgbAccordionModule],
-        declarations: [NgbAccordionDirective],
-        providers: [NgbAccordionConfig],
-      }).compileComponents();
-    }).toThrowError(/Module with empty declarations or imports/);
-  });
-
-  // Test Case 5: Importing Module Without Exporting Directives
-  it('should not export accordion directives if importing module doesn\'t export them', () => {
+  // Test 3: Missing Directive Import
+  it('should throw error if necessary directives are not imported', () => {
     @NgModule({
-      imports: [NgbAccordionModule],
+      declarations: [TestComponent],
     })
-    class ImportingModuleWithoutExports {}
-    TestBed.configureTestingModule({
-      imports: [ImportingModuleWithoutExports],
-      declarations: [NgbAccordionDirective],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
-    const accordionDirective = fixture.debugElement.query(By.directive(NgbAccordionDirective));
-    expect(accordionDirective).toBeNull();
-  });
+    class TestModule {}
 
-  // Test Case 6: Circular Dependency
-  it('should fail compilation if there is a circular dependency between accordion.directive and NgbAccordionModule', () => {
+    const testBedWithoutDirectives = TestBed.configureTestingModule({
+      imports: [TestModule],
+    });
+
     expect(() => {
-      @NgModule({
-        imports: [NgbAccordionModule],
-        declarations: [NgbAccordionDirective],
-        providers: [NgbAccordionConfig],
-      })
-      class CircularDependencyModule {}
-      TestBed.configureTestingModule({
-        imports: [CircularDependencyModule],
-      }).compileComponents();
-    }).toThrowError(/Circular dependency: NgbAccordionModule/);
+      testBedWithoutDirectives.compileComponents();
+    }).toThrowError(/NgbAccordionItem.*not imported.*?/);
   });
 
-  // Test Case 7: Missing Template
-  it('should not render anything if the accordion component doesn\'t have a template defined', () => {
-    @Component({
-      selector: 'missing-template-accordion',
-      template: '',
+  // Test 4: Incorrect Directive Configuration
+  it('should throw error if NgbAccordionConfig is not set correctly', () => {
+    const incorrectConfigurationTemplate = `
+      <ngb-accordion [closeOthers]="invalidValue"></ngb-accordion>
+    `;
+    fixture.nativeElement.innerHTML = incorrectConfigurationTemplate;
+    expect(() => {
+      fixture.detectChanges();
+    }).toThrowError(/closeOthers.*invalid.*?/);
+  });
+
+  // Test 5: Event Handling Issues
+  it('should throw error if event handlers are not bound correctly', () => {
+    const incorrectEventBindingTemplate = `
+      <ngb-accordion-item (click)="handleIncorrectEvent($event)"></ngb-accordion-item>
+    `;
+    fixture.nativeElement.innerHTML = incorrectEventBindingTemplate;
+    expect(() => {
+      fixture.detectChanges();
+    }).toThrowError(/Event binding.*not supported.*?/);
+  });
+
+  // Test 6: Content Projection Issues
+  it('should throw error if content is not projected correctly', () => {
+    const incorrectProjectionTemplate = `
+      <ngb-accordion-item>
+        <div>Content Outside NgbAccordionBody</div>
+      </ngb-accordion-item>
+    `;
+    fixture.nativeElement.innerHTML = incorrectProjectionTemplate;
+    expect(() => {
+      fixture.detectChanges();
+    }).toThrowError(/Content.*must be projected.*NgbAccordionBody.*?/);
+  });
+
+  // Test 7: Styling Conflicts
+  it('should show styling conflicts if custom CSS conflicts with NgbAccordionModule styles', () => {
+    const customStyleElement = document.createElement('style');
+    customStyleElement.innerHTML = `.ngb-accordion { background-color: red; }`;
+    document.head.appendChild(customStyleElement);
+
+    fixture.detectChanges();
+
+    const accordionElement = fixture.debugElement.query(By.css('.ngb-accordion'));
+    expect(accordionElement.nativeElement.style.backgroundColor).toBe('red');
+  });
+
+  // Test 8: Animation Issues
+  it('should throw error if animation does not work correctly', () => {
+    @NgModule({
+      declarations: [TestComponent],
     })
-    class MissingTemplateAccordionComponent {}
-    TestBed.configureTestingModule({
-      imports: [NgbAccordionModule],
-      declarations: [MissingTemplateAccordionComponent],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
-    fixture = TestBed.createComponent(MissingTemplateAccordionComponent);
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.nativeElement;
-    expect(accordionElement.innerHTML).toBe('');
+    class TestModule {}
+
+    const testBedWithoutAnimationsModule = TestBed.configureTestingModule({
+      imports: [TestModule],
+    });
+
+    expect(() => {
+      testBedWithoutAnimationsModule.compileComponents();
+    }).toThrowError(/Animation.*not supported.*AnimationsModule.*?/);
   });
 
-  // Test Case 8: Invalid Directive Selector
-  it('should not apply to any elements if the accordion directive has an invalid selector', () => {
-    @Component({
-      selector: 'invalid-selector-accordion',
-      template: `<div ngbAccordion></div>`,
-    })
-    class InvalidSelectorAccordionComponent {}
-    TestBed.configureTestingModule({
-      imports: [NgbAccordionModule],
-      declarations: [InvalidSelectorAccordionComponent],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
-    fixture = TestBed.createComponent(InvalidSelectorAccordionComponent);
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('div[ngbAccordion]'));
-    expect(accordionElement).toBeNull();
+  // Test 9: Accessibility Issues
+  it('should ensure proper accessibility attributes are set', () => {
+    const accordionElement = fixture.debugElement.query(By.css('.ngb-accordion'));
+    expect(accordionElement.nativeElement.getAttribute('role')).toBe('tablist');
+    expect(accordionElement.nativeElement.getAttribute('aria-multiselectable')).toBe('true');
+
+    const accordionItems = fixture.debugElement.queryAll(By.css('.ngb-accordion-item'));
+    accordionItems.forEach((item) => {
+      expect(item.nativeElement.getAttribute('role')).toBe('tab');
+      expect(item.nativeElement.getAttribute('aria-expanded')).toBe('false');
+    });
   });
 
-  // Test Case 9: Event Emitter Not Working
-  it('should not emit the panelChange event when the accordion is clicked', () => {
-    const panelChangeSpy = jasmine.createSpy('panelChange');
-    fixture.componentInstance.panelChange.subscribe(panelChangeSpy);
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    expect(panelChangeSpy).not.toHaveBeenCalled();
-  });
-
-  // Test Case 10: Accordion Not Closing Properly
-  it('should not close the accordion when the close button is clicked', () => {
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).not.toBe('none');
-  });
-
-  // Test Case 11: Multiple Accordions Not Working Together
-  it('should not allow multiple accordions to be open at the same time', () => {
-    @Component({
-      selector: 'multiple-accordions',
-      template: `
-        <div ngbAccordion [closeOthers]="true">
-          <div ngbPanel>
-            <button ngbPanelToggle>Panel 1</button>
-            <div ngbPanelContent>Panel 1 content</div>
-          </div>
-          <div ngbPanel>
-            <button ngbPanelToggle>Panel 2</button>
-            <div ngbPanelContent>Panel 2 content</div>
-          </div>
-        </div>
-      `,
-    })
-    class MultipleAccordionsComponent {}
-    TestBed.configureTestingModule({
-      imports: [NgbAccordionModule],
-      declarations: [MultipleAccordionsComponent],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
-    fixture = TestBed.createComponent(MultipleAccordionsComponent);
-    fixture.detectChanges();
-    const panelToggleButtons = fixture.debugElement.queryAll(By.css('button[ngbPanelToggle]'));
-    panelToggleButtons[0].triggerEventHandler('click', {});
-    fixture.detectChanges();
-    expect(panelToggleButtons[1].nativeElement.getAttribute('aria-expanded')).toBe('false');
-  });
-
-  // Test Case 12: Custom Template Not Working
-  it('should not render the custom template content inside the accordion panel', () => {
-    @Component({
-      selector: 'custom-template-accordion',
-      template: `
-        <ng-template #customContent>
-          Custom content
+  // Test 10: Template Syntax Issues
+  it('should throw error if invalid template syntax is used', () => {
+    const invalidTemplate = `
+      <ngb-accordion-item>
+        <ng-template *ngIf="false">
+          <ngb-accordion-header></ngb-accordion-header>
+          <ngb-accordion-body></ngb-accordion-body>
         </ng-template>
-        <div ngbAccordion>
-          <div ngbPanel>
-            <button ngbPanelToggle>Panel 1</button>
-            <ng-template ngbPanelContent>
-              {{customContent}}
-            </ng-template>
-          </div>
-        </div>
+      </ngb-accordion-item>
+    `;
+    fixture.nativeElement.innerHTML = invalidTemplate;
+    expect(() => {
+      fixture.detectChanges();
+    }).toThrowError(/Invalid template syntax.*?/);
+  });
+
+  // Test 11: Dynamic Component Loading Issues
+  it('should support dynamic component loading within accordion panels', () => {
+    @Component({
+      template: `
+        <ngb-accordion-item>
+          <ngb-accordion-header>Dynamic Component</ngb-accordion-header>
+          <ng-template ngbAccordionBody>
+            <dynamic-component></dynamic-component>
+          </ng-template>
+        </ngb-accordion-item>
       `,
     })
-    class CustomTemplateAccordionComponent {}
-    TestBed.configureTestingModule({
-      imports: [NgbAccordionModule],
-      declarations: [CustomTemplateAccordionComponent],
-      providers: [NgbAccordionConfig],
-    }).compileComponents();
-    fixture = TestBed.createComponent(CustomTemplateAccordionComponent);
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.nativeElement.textContent).not.toContain('Custom content');
-  });
+    class TestComponent {}
 
-  // Test Case 13: Auto Collapse Not Working
-  it('should not collapse the accordion when the autoCollapse property is set to true', () => {
-    fixture.componentInstance.autoCollapse = true;
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('none');
-  });
+    TestBed.overrideComponent(TestComponent, {
+      set: {
+        template: `
+          <ngb-accordion-item>
+            <ngb-accordion-header>Dynamic Component</ngb-accordion-header>
+            <ng-template ngbAccordionBody>
+              <div>Dynamic Component Content</div>
+            </ng-template>
+          </ngb-accordion-item>
+        `,
+      },
+    });
 
-  // Test Case 14: Invalid Panel ID
-  it('should not open the accordion panel when the panelId is invalid', () => {
     fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.nativeElement.setAttribute('ngbPanelToggle', 'invalid-id');
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('none');
+    const accordionItem = fixture.debugElement.query(By.css('.ngb-accordion-item'));
+    const accordionBody = accordionItem.query(By.css('.ngb-accordion-body'));
+    expect(accordionBody.nativeElement.textContent).toContain('Dynamic Component Content');
   });
-
-  // Test Case 15: Change Detection Not Working
-  it('should not update the accordion when the model changes', () => {
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('block');
-    fixture.componentInstance.activeIds = [];
-    fixture.detectChanges();
-    expect(panelBodyElement.styles['display']).toBe('block');
-  });
-
-  // Test Case 16: Event Emitter Not Firing Consistently
-  it('should not consistently emit the panelChange event when the accordion is clicked', () => {
-    const panelChangeSpy = jasmine.createSpy('panelChange');
-    fixture.componentInstance.panelChange.subscribe(panelChangeSpy);
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    expect(panelChangeSpy).toHaveBeenCalledTimes(1);
-    accordionElement.triggerEventHandler('click', {});
-    expect(panelChangeSpy).toHaveBeenCalledTimes(2);
-  });
-
-  // Test Case 17: Accessibility Not Working
-  it('should not be accessible using keyboard navigation', () => {
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('keydown', { key: 'Enter' });
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('none');
-  });
-
-  // Test Case 18: Animations Not Working
-  it('should not have any animations when the accordion is opened or closed', () => {
-    fixture.componentInstance.animation = false;
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.nativeElement.classList).not.toContain('show');
-  });
-
-  // Test Case 19: Invalid Input Values
-  it('should not accept invalid input values for the activeIds property', () => {
-    fixture.componentInstance.activeIds = ['invalid-id'];
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    fixture.detectChanges();
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('none');
-  });
-
-  // Test Case 20: Performance Issues
-  it('should not have any performance issues when the accordion is opened or closed', fakeAsync(() => {
-    fixture.detectChanges();
-    const accordionElement = fixture.debugElement.query(By.css('button[ngbPanelToggle]'));
-    accordionElement.triggerEventHandler('click', {});
-    tick(500);
-    const panelBodyElement = fixture.debugElement.query(By.css('div[ngbPanelContent]'));
-    expect(panelBodyElement.styles['display']).toBe('block');
-    accordionElement.triggerEventHandler('click', {});
-    tick(500);
-    expect(panelBodyElement.styles['display']).toBe('none');
-  }));
 });

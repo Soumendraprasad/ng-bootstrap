@@ -1,240 +1,183 @@
-//@ts-nocheck
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import {
-	Component,
-	Directive,
-	ElementRef,
-	EventEmitter,
-	Input,
-	Output,
-	TemplateRef,
-	ViewContainerRef,
+Component,
+DebugElement,
+Input,
+OnInit,
+TemplateRef,
+ViewChild,
 } from '@angular/core';
-import { takeUntil } from 'rxjs/operators';
-import { NgbAccordionDirective, NgbAccordionItem, NgbAccordionCollapse } from '../accordion.directive';
-import { NgbCollapse } from '../../collapse/collapse';
+import {
+async,
+ComponentFixture,
+TestBed,
+fakeAsync,
+tick,
+} from '@angular/core/testing';
+import {
+NgbAccordion,
+NgbAccordionItem,
+NgbAccordionToggle,
+} from '../accordion.directive';
 
-@Directive({
-	selector: '[ngbAccordionCollapse]',
-	host: { class: 'accordion-collapse' },
-})
-class MockNgbAccordionCollapse {
-	@Input() item: any;
-	ngbCollapse = {};
-}
+describe('NgbAccordion', () => {
+  let fixture: ComponentFixture<TestComponent>;
+  let component: TestComponent;
+  let accordion: NgbAccordion;
+  let accordionItems: DebugElement[];
 
-@Directive({
-	selector: '[ngbAccordionItem]',
-	host: { class: 'accordion-item' },
-})
-class MockNgbAccordionItem {
-	@Input() id: string;
-	@Input() destroyOnHide: boolean;
-	@Input() disabled: boolean;
-	@Input() collapsed: boolean;
-	@Output() show = new EventEmitter<void>();
-	@Output() shown = new EventEmitter<void>();
-	@Output() hide = new EventEmitter<void>();
-	@Output() hidden = new EventEmitter<void>();
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [TestComponent, NgbAccordion, NgbAccordionItem, NgbAccordionToggle],
+    }).compileComponents();
+  }));
 
-	expand() {
-		this.collapsed = false;
-		this.show.emit();
-		this.shown.emit();
-	}
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestComponent);
+    component = fixture.componentInstance;
+    accordion = fixture.debugElement.query(By.directive(NgbAccordion)).componentInstance;
+    accordionItems = fixture.debugElement.queryAll(By.directive(NgbAccordionItem));
+    fixture.detectChanges();
+  });
 
-	collapse() {
-		this.collapsed = true;
-		this.hide.emit();
-		this.hidden.emit();
-	}
-}
+  it('should expand and collapse items', () => {
+    expect(accordionItems[0].nativeElement.classList).toContain('collapsed');
+    component.toggleItem(0);
+    fixture.detectChanges();
+    expect(accordionItems[0].nativeElement.classList).not.toContain('collapsed');
+    component.toggleItem(0);
+    fixture.detectChanges();
+    expect(accordionItems[0].nativeElement.classList).toContain('collapsed');
+  });
+
+  it('should expand and collapse items with closeOthers', () => {
+    component.closeOthers = true;
+    fixture.detectChanges();
+
+    component.toggleItem(0);
+    fixture.detectChanges();
+    expect(accordionItems[0].nativeElement.classList).not.toContain('collapsed');
+    expect(accordionItems[1].nativeElement.classList).toContain('collapsed');
+
+    component.toggleItem(1);
+    fixture.detectChanges();
+    expect(accordionItems[0].nativeElement.classList).toContain('collapsed');
+    expect(accordionItems[1].nativeElement.classList).not.toContain('collapsed');
+  });
+
+  it('should destroy item body on hide', fakeAsync(() => {
+    component.destroyOnHide = true;
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    expect(accordionItems[0].nativeElement.querySelector('div')).toBeTruthy();
+
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    tick(500); // wait for the animation to finish
+    expect(accordionItems[0].nativeElement.querySelector('div')).toBeFalsy();
+  }));
+
+  it('should use custom item IDs', () => {
+    component.customItemIds = true;
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    expect(accordionItems[0].nativeElement.id).toBe('item-1');
+    expect(accordionItems[1].nativeElement.id).toBe('item-2');
+  });
+
+  it('should disable items', () => {
+    component.disableItem1 = true;
+    fixture.detectChanges();
+
+    accordionItems[0].query(By.css('button')).nativeElement.click();
+    fixture.detectChanges();
+
+    expect(accordionItems[0].nativeElement.classList).toContain('collapsed');
+    expect(accordionItems[1].nativeElement.classList).not.toContain('collapsed');
+  });
+
+  it('should animate items', () => {
+    component.animation = true;
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    expect(accordionItems[0].nativeElement.classList).toContain('collapsing');
+
+    setTimeout(() => {
+      expect(accordionItems[0].nativeElement.classList).not.toContain('collapsing');
+      expect(accordionItems[0].nativeElement.classList).not.toContain('collapsed');
+    }, 500); // wait for the animation to finish
+  });
+
+  it('should fire events', () => {
+    const showSpy = jasmine.createSpy('show');
+    const shownSpy = jasmine.createSpy('shown');
+    const hideSpy = jasmine.createSpy('hide');
+    const hiddenSpy = jasmine.createSpy('hidden');
+    accordion.show.subscribe(showSpy);
+    accordion.shown.subscribe(shownSpy);
+    accordion.hide.subscribe(hideSpy);
+    accordion.hidden.subscribe(hiddenSpy);
+
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    expect(showSpy).toHaveBeenCalledTimes(1);
+    expect(shownSpy).toHaveBeenCalledTimes(1);
+    expect(hideSpy).not.toHaveBeenCalled();
+    expect(hiddenSpy).not.toHaveBeenCalled();
+
+    component.toggleItem(0);
+    fixture.detectChanges();
+
+    expect(showSpy).toHaveBeenCalledTimes(2);
+    expect(shownSpy).toHaveBeenCalledTimes(2);
+    expect(hideSpy).toHaveBeenCalledTimes(1);
+    expect(hiddenSpy).toHaveBeenCalledTimes(1);
+  });
+});
 
 @Component({
-	selector: 'test-component',
-	template: `
-		<div ngbAccordion>
-			<div ngbAccordionItem id="item1">Item 1</div>
-			<div ngbAccordionItem id="item2">Item 2</div>
-			<div ngbAccordionItem id="item3">Item 3</div>
-		</div>
-	`,
+  template: `
+    <ngb-accordion [closeOthers]="closeOthers" [destroyOnHide]="destroyOnHide" [animation]="animation">
+      <ngb-accordion-item *ngFor="let item of items; let i = index" [id]="customItemIds ? 'item-' + (i + 1) : ''">
+        <ng-template ngbAccordionHeader>
+          <button ngbAccordionToggle type="button">
+            {{ item.header }}
+          </button>
+        </ng-template>
+        <div ngbAccordionBody>
+          {{ item.body }}
+        </div>
+      </ngb-accordion-item>
+    </ngb-accordion>
+  `,
 })
-class TestComponent {}
+class TestComponent implements OnInit {
+  @Input() closeOthers = false;
+  @Input() destroyOnHide = false;
+  @Input() animation = false;
+  @Input() customItemIds = false;
+  @Input() disableItem1 = false;
 
-describe('NgbAccordionDirective', () => {
-	let fixture: ComponentFixture<TestComponent>;
-	let accordion: NgbAccordionDirective;
+  items = [
+    { header: 'Item 1', body: 'Content of item 1' },
+    { header: 'Item 2', body: 'Content of item 2' },
+  ];
 
-	beforeEach(() => {
-		TestBed.configureTestingModule({
-			declarations: [
-				TestComponent,
-				MockNgbAccordionItem,
-				MockNgbAccordionCollapse,
-				NgbCollapse, // Importing the actual NgbCollapse as it is not mocked
-			],
-		});
+  ngOnInit() {
+    if (this.disableItem1) {
+      this.items[0].disabled = true;
+    }
+  }
 
-		fixture = TestBed.createComponent(TestComponent);
-		fixture.detectChanges();
-		accordion = fixture.debugElement.query(By.directive(NgbAccordionDirective)).injector.get(NgbAccordionDirective);
-	});
+  toggleItem(index: number) {
+    accordionItems[index].query(By.css('button')).nativeElement.click();
+  }
 
-	it('should toggle an item with a custom ID', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = true;
-		item2.collapsed = true;
-
-		accordion.toggle('item1');
-		expect(item1.collapsed).toBe(false);
-		expect(item2.collapsed).toBe(true);
-
-		accordion.toggle('item2');
-		expect(item1.collapsed).toBe(false);
-		expect(item2.collapsed).toBe(false);
-	});
-
-	it('should expand all items', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = true;
-		item2.collapsed = true;
-		item3.collapsed = true;
-
-		accordion.expandAll();
-		expect(item1.collapsed).toBe(false);
-		expect(item2.collapsed).toBe(false);
-		expect(item3.collapsed).toBe(false);
-	});
-
-	it('should collapse all items', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = false;
-		item2.collapsed = false;
-		item3.collapsed = false;
-
-		accordion.collapseAll();
-		expect(item1.collapsed).toBe(true);
-		expect(item2.collapsed).toBe(true);
-		expect(item3.collapsed).toBe(true);
-	});
-
-	it('should expand an item with closeOthers set to true', () => {
-		accordion.closeOthers = true;
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = false;
-		item2.collapsed = true;
-		item3.collapsed = true;
-
-		accordion.expand('item2');
-		expect(item1.collapsed).toBe(true);
-		expect(item2.collapsed).toBe(false);
-		expect(item3.collapsed).toBe(true);
-	});
-
-	it('should expand an item with destroyOnHide set to true', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = true;
-		item2.collapsed = true;
-		item3.collapsed = true;
-
-		item2.destroyOnHide = true;
-		accordion.expand('item2');
-		expect(fixture.debugElement.query(By.css('#item2 .accordion-collapse'))).toBeTruthy();
-	});
-
-	it('should collapse an item with destroyOnHide set to true', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.collapsed = true;
-		item2.collapsed = false;
-		item3.collapsed = true;
-
-		item2.destroyOnHide = true;
-		accordion.collapse('item2');
-		expect(fixture.debugElement.query(By.css('#item2 .accordion-collapse'))).toBeFalsy();
-	});
-
-	it('should properly handle disabled items', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-		const item3 = fixture.debugElement.query(By.css('#item3')).injector.get(MockNgbAccordionItem);
-
-		item1.disabled = true;
-		item2.disabled = false;
-		item3.disabled = false;
-
-		// Try to toggle a disabled item
-		accordion.toggle('item1');
-		expect(item1.collapsed).toBe(true);
-		expect(item2.collapsed).toBe(true);
-		expect(item3.collapsed).toBe(true);
-
-		// Try to expand a disabled item
-		accordion.expand('item1');
-		expect(item1.collapsed).toBe(true);
-		expect(item2.collapsed).toBe(true);
-		expect(item3.collapsed).toBe(true);
-
-		// Try to collapse a disabled item
-		item2.collapsed = false;
-		item3.collapsed = false;
-		accordion.collapse('item1');
-		expect(item1.collapsed).toBe(true);
-		expect(item2.collapsed).toBe(false);
-		expect(item3.collapsed).toBe(false);
-	});
-
-	it('should emit show and shown events when expanding an item', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-
-		let showSpy = jasmine.createSpy('showSpy');
-		let shownSpy = jasmine.createSpy('shownSpy');
-		accordion.show.subscribe(showSpy);
-		accordion.shown.subscribe(shownSpy);
-
-		item1.collapsed = true;
-		item2.collapsed = true;
-
-		accordion.toggle('item1');
-
-		expect(showSpy).toHaveBeenCalledTimes(1);
-		expect(shownSpy).toHaveBeenCalledTimes(1);
-	});
-
-	it('should emit hide and hidden events when collapsing an item', () => {
-		const item1 = fixture.debugElement.query(By.css('#item1')).injector.get(MockNgbAccordionItem);
-		const item2 = fixture.debugElement.query(By.css('#item2')).injector.get(MockNgbAccordionItem);
-
-		let hideSpy = jasmine.createSpy('hideSpy');
-		let hiddenSpy = jasmine.createSpy('hiddenSpy');
-		accordion.hide.subscribe(hideSpy);
-		accordion.hidden.subscribe(hiddenSpy);
-
-		item1.collapsed = false;
-		item2.collapsed = false;
-
-		accordion.toggle('item1');
-
-		expect(hideSpy).toHaveBeenCalledTimes(1);
-		expect(hiddenSpy).toHaveBeenCalledTimes(1);
-	});
-});
+  disableItem(index: number) {
+    this.items[index].disabled = true;
+  }
+}

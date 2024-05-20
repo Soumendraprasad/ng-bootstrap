@@ -1,234 +1,182 @@
-import {  ComponentFixture, TestBed, tick, fakeAsync  } from '@angular/core/testing';
-import {  NgbAccordionModule, NgbAccordionItem, NgbAccordion  } from '../accordion.module';
+import {  TestBed, ComponentFixture  } from '@angular/core/testing';
+import {  NgbAccordionModule  } from '../accordion.module';
+import {  NgbAccordionDirective  } from '../accordion.directive';
+import {  NgbAccordionItem  } from '../accordion.directive';
+import {  NgbAccordionHeader  } from '../accordion.directive';
+import {  NgbAccordionToggle  } from '../accordion.directive';
+import {  NgbAccordionBody  } from '../accordion.directive';
+import {  NgbAccordionCollapse  } from '../accordion.directive';
+import {  NgbAccordionButton  } from '../accordion.directive';
 import {  By  } from '@angular/platform-browser';
 
 describe('NgbAccordionModule', () => {
-  let fixture: ComponentFixture<NgbAccordion>;
-  let accordion: NgbAccordion;
-  let accordionItemHeaders: HTMLElement[];
+  let component: NgbAccordionDirective;
+  let fixture: ComponentFixture<NgbAccordionDirective>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgbAccordionModule],
+      imports: [NgbAccordionModule]
     });
 
-    fixture = TestBed.createComponent(NgbAccordion);
-    accordion = fixture.componentInstance;
-    fixture.detectChanges();
-
-    accordionItemHeaders = fixture.debugElement.queryAll(By.css('.accordion-header')).map(element => element.nativeElement);
+    fixture = TestBed.createComponent(NgbAccordionDirective);
+    component = fixture.componentInstance;
   });
 
-  it('should render the accordion properly', () => {
-    // Assert that the accordion is rendered with 3 accordion items.
-    expect(accordionItemHeaders.length).toBe(3);
-    expect(accordionItemHeaders[0].textContent).toContain('Item 1');
-    expect(accordionItemHeaders[1].textContent).toContain('Item 2');
-    expect(accordionItemHeaders[2].textContent).toContain('Item 3');
+  // Scenario 1: Basic Accordion Toggle Functionality
+  it('should open and close an accordion item when the toggle button is clicked', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const toggleButton = accordionItem.query(By.css('.accordion-toggle'));
+
+    // Act
+    toggleButton.triggerEventHandler('click', null);
+    fixture.detectChanges();
+
+    // Assert
+    expect(accordionItem.classes['show']).toBeTrue();
+
+    // Act
+    toggleButton.triggerEventHandler('click', null);
+    fixture.detectChanges();
+
+    // Assert
+    expect(accordionItem.classes['show']).toBeFalse();
   });
 
-  it('should toggle the visibility of accordion content on header click', () => {
-    // Assert that the content of the first accordion item is initially hidden.
-    const firstAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    expect(firstAccordionItemContent.classList.contains('show')).toBeFalsy();
-
-    // Simulate a click on the first accordion header.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+  // Scenario 2: Multiple Accordion Items
+  it('should open and close multiple accordion items independently', () => {
+    // Arrange
     fixture.detectChanges();
-
-    // Assert that the content of the first accordion item is now visible.
-    expect(firstAccordionItemContent.classList.contains('show')).toBeTruthy();
-
-    // Simulate a click on the first accordion header again.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
-    fixture.detectChanges();
-
-    // Assert that the content of the first accordion item is now hidden again.
-    expect(firstAccordionItemContent.classList.contains('show')).toBeFalsy();
-  });
-
-  it('should allow multiple accordions on the same page', () => {
-    // Create a second accordion.
-    const secondAccordion = fixture.debugElement.query(By.css('ngb-accordion:nth-child(2)')).nativeElement;
-    const secondAccordionItemHeaders = fixture.debugElement.queryAll(By.css('ngb-accordion:nth-child(2) .accordion-header')).map(element => element.nativeElement);
-
-    // Assert that the second accordion is rendered with 2 accordion items.
-    expect(secondAccordionItemHeaders.length).toBe(2);
-    expect(secondAccordionItemHeaders[0].textContent).toContain('Item 4');
-    expect(secondAccordionItemHeaders[1].textContent).toContain('Item 5');
-
-    // Simulate a click on the first header of the second accordion.
-    secondAccordionItemHeaders[0].dispatchEvent(new Event('click'));
-    fixture.detectChanges();
-
-    // Assert that the content of the first accordion item of the second accordion is now visible.
-    const firstAccordionItemContentOfSecondAccordion = secondAccordion.querySelector('.accordion-item:first-child .accordion-body');
-    expect(firstAccordionItemContentOfSecondAccordion.classList.contains('show')).toBeTruthy();
-
-    // Assert that the content of the first accordion item of the first accordion is still hidden.
-    const firstAccordionItemContentOfFirstAccordion = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    expect(firstAccordionItemContentOfFirstAccordion.classList.contains('show')).toBeFalsy();
-  });
-
-  it('should disable accordion items', () => {
-    // Disable the second accordion item.
-    accordion.items[1].disabled = true;
-    fixture.detectChanges();
-
-    // Assert that the second accordion item is disabled.
-    expect(accordionItemHeaders[1].classList.contains('disabled')).toBeTruthy();
-
-    // Simulate a click on the header of the disabled accordion item.
-    accordionItemHeaders[1].dispatchEvent(new Event('click'));
-    fixture.detectChanges();
-
-    // Assert that the content of the disabled accordion item is not toggled.
-    const secondAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:nth-child(2) .accordion-body')).nativeElement;
-    expect(secondAccordionItemContent.classList.contains('show')).toBeFalsy();
-  });
-
-  it('should support keyboard navigation', () => {
-    // Focus the first accordion header.
-    accordionItemHeaders[0].focus();
-
-    // Simulate a down arrow key press.
-    accordionItemHeaders[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
-    fixture.detectChanges();
-
-    // Assert that the focus moved to the second accordion header.
-    expect(document.activeElement).toBe(accordionItemHeaders[1]);
-
-    // Simulate a right arrow key press.
-    accordionItemHeaders[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
-    fixture.detectChanges();
-
-    // Assert that the content of the second accordion item is now visible.
-    const secondAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:nth-child(2) .accordion-body')).nativeElement;
-    expect(secondAccordionItemContent.classList.contains('show')).toBeTruthy();
-
-    // Simulate a space key press.
-    accordionItemHeaders[1].dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
-    fixture.detectChanges();
-
-    // Assert that the content of the second accordion item is now hidden.
-    expect(secondAccordionItemContent.classList.contains('show')).toBeFalsy();
-  });
-
-  it('should be accessible to assistive technologies', () => {
-    // Assert that the accordion has the appropriate ARIA attributes.
-    const accordionElement = fixture.debugElement.query(By.css('ngb-accordion')).nativeElement;
-    expect(accordionElement.getAttribute('role')).toBe('tablist');
-    expect(accordionElement.getAttribute('aria-multiselectable')).toBe('true');
-
-    const accordionItemHeadersWithAriaExpanded = accordionItemHeaders.filter(header => header.getAttribute('aria-expanded') !== null);
-    expect(accordionItemHeadersWithAriaExpanded.length).toBe(3);
-    expect(accordionItemHeadersWithAriaExpanded[0].getAttribute('aria-expanded')).toBe('false');
-    expect(accordionItemHeadersWithAriaExpanded[1].getAttribute('aria-expanded')).toBe('false');
-    expect(accordionItemHeadersWithAriaExpanded[2].getAttribute('aria-expanded')).toBe('false');
-
-    // Assert that the accordion items have the appropriate ARIA attributes.
     const accordionItems = fixture.debugElement.queryAll(By.css('.accordion-item'));
-    expect(accordionItems.length).toBe(3);
-    accordionItems.forEach((accordionItem, index) => {
-      expect(accordionItem.nativeElement.getAttribute('role')).toBe('tabpanel');
-      expect(accordionItem.nativeElement.getAttribute('aria-labelledby')).toBe(`accordion-header-${index + 1}`);
-    });
+    const firstToggleButton = accordionItems[0].query(By.css('.accordion-toggle'));
+    const secondToggleButton = accordionItems[1].query(By.css('.accordion-toggle'));
 
-    // Simulate a click on the first accordion header.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+    // Act
+    firstToggleButton.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the aria-expanded attribute of the first accordion header is now true.
-    expect(accordionItemHeaders[0].getAttribute('aria-expanded')).toBe('true');
+    // Assert
+    expect(accordionItems[0].classes['show']).toBeTrue();
+    expect(accordionItems[1].classes['show']).toBeFalse();
 
-    // Assert that the aria-hidden attribute of the first accordion item is now false.
-    const firstAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    expect(firstAccordionItemContent.getAttribute('aria-hidden')).toBe('false');
+    // Act
+    secondToggleButton.triggerEventHandler('click', null);
+    fixture.detectChanges();
+
+    // Assert
+    expect(accordionItems[0].classes['show']).toBeTrue();
+    expect(accordionItems[1].classes['show']).toBeTrue();
   });
 
-  it('should fire events when items are expanded or collapsed', () => {
-    // Spy on the expand and collapse events.
-    const expandSpy = jasmine.createSpy('expand');
-    const collapseSpy = jasmine.createSpy('collapse');
-    accordion.expandChange.subscribe(expandSpy);
-    accordion.collapseChange.subscribe(collapseSpy);
+  // Scenario 3: Nested Accordion Items
+  it('should open and close nested accordion items', () => {
+    // Arrange
+    fixture.detectChanges();
+    const parentAccordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const parentToggleButton = parentAccordionItem.query(By.css('.accordion-toggle'));
+    const nestedAccordionItem = parentAccordionItem.query(By.css('.accordion-item'));
+    const nestedToggleButton = nestedAccordionItem.query(By.css('.accordion-toggle'));
 
-    // Simulate a click on the first accordion header.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+    // Act
+    parentToggleButton.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the expand event was fired.
-    expect(expandSpy).toHaveBeenCalledWith(accordion.items[0]);
+    // Assert
+    expect(parentAccordionItem.classes['show']).toBeTrue();
+    expect(nestedAccordionItem.classes['show']).toBeFalse();
 
-    // Assert that the collapse event was not fired.
-    expect(collapseSpy).not.toHaveBeenCalled();
-
-    // Simulate a click on the first accordion header again.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+    // Act
+    nestedToggleButton.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the expand event was not fired.
-    expect(expandSpy).toHaveBeenCalledTimes(1);
-
-    // Assert that the collapse event was fired.
-    expect(collapseSpy).toHaveBeenCalledWith(accordion.items[0]);
+    // Assert
+    expect(parentAccordionItem.classes['show']).toBeTrue();
+    expect(nestedAccordionItem.classes['show']).toBeTrue();
   });
 
-  it('should allow multiple accordions to be opened at the same time', () => {
-    // Simulate a click on the first and second accordion headers.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
-    accordionItemHeaders[1].dispatchEvent(new Event('click'));
+  // Scenario 4: Accordion Item Content Loading
+  it('should load accordion item content asynchronously', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionBody = accordionItem.query(By.css('.accordion-body'));
+
+    // Assert
+    expect(accordionBody.nativeElement.textContent).toBe('');
+
+    // Act
+    accordionItem.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the content of the first and second accordion items is now visible.
-    const firstAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    const secondAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:nth-child(2) .accordion-body')).nativeElement;
-    expect(firstAccordionItemContent.classList.contains('show')).toBeTruthy();
-    expect(secondAccordionItemContent.classList.contains('show')).toBeTruthy();
+    // Assert
+    expect(accordionBody.nativeElement.textContent).toBe('This is the content of the accordion item.');
   });
 
-  it('should close all other accordions when one is opened', () => {
-    // Simulate a click on the first accordion header.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+  // Scenario 5: Accordion Item Header Customization
+  it('should customize accordion item headers using CSS classes', () => {
+    // Arrange
     fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionHeader = accordionItem.query(By.css('.accordion-header'));
 
-    // Assert that the content of the first accordion item is now visible.
-    const firstAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    expect(firstAccordionItemContent.classList.contains('show')).toBeTruthy();
-
-    // Simulate a click on the second accordion header.
-    accordionItemHeaders[1].dispatchEvent(new Event('click'));
-    fixture.detectChanges();
-
-    // Assert that the content of the first accordion item is now hidden.
-    expect(firstAccordionItemContent.classList.contains('show')).toBeFalsy();
-
-    // Assert that the content of the second accordion item is now visible.
-    const secondAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:nth-child(2) .accordion-body')).nativeElement;
-    expect(secondAccordionItemContent.classList.contains('show')).toBeTruthy();
+    // Assert
+    expect(accordionHeader.classes['custom-class']).toBeTrue();
   });
 
-  it('should not close an accordion if its `closeOthers` property is set to false', () => {
-    // Set the `closeOthers` property of the first accordion to false.
-    accordion.items[0].closeOthers = false;
+  // Scenario 6: Accordion Accessibility
+  it('should be accessible to users with disabilities', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionToggle = accordionItem.query(By.css('.accordion-toggle'));
 
-    // Simulate a click on the first accordion header.
-    accordionItemHeaders[0].dispatchEvent(new Event('click'));
+    // Act
+    accordionToggle.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the content of the first accordion item is now visible.
-    const firstAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:first-child .accordion-body')).nativeElement;
-    expect(firstAccordionItemContent.classList.contains('show')).toBeTruthy();
+    // Assert
+    expect(accordionItem.classes['show']).toBeTrue();
 
-    // Simulate a click on the second accordion header.
-    accordionItemHeaders[1].dispatchEvent(new Event('click'));
+    // Act
+    accordionToggle.triggerEventHandler('click', null);
     fixture.detectChanges();
 
-    // Assert that the content of the first accordion item is still visible.
-    expect(firstAccordionItemContent.classList.contains('show')).toBeTruthy();
+    // Assert
+    expect(accordionItem.classes['show']).toBeFalse();
+  });
 
-    // Assert that the content of the second accordion item is now visible.
-    const secondAccordionItemContent = fixture.debugElement.query(By.css('.accordion-item:nth-child(2) .accordion-body')).nativeElement;
-    expect(secondAccordionItemContent.classList.contains('show')).toBeTruthy();
+  // Bonus Scenario 1: Accordion Item Header with HTML markup
+  it('should allow HTML markup in accordion item headers', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionHeader = accordionItem.query(By.css('.accordion-header'));
+
+    // Assert
+    expect(accordionHeader.nativeElement.innerHTML).toBe('<strong>Accordion Item Header</strong>');
+  });
+
+  // Bonus Scenario 2: Accordion Item Header with ARIA attributes
+  it('should add appropriate ARIA attributes to accordion item headers', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionHeader = accordionItem.query(By.css('.accordion-header'));
+
+    // Assert
+    expect(accordionHeader.nativeElement.getAttribute('aria-expanded')).toBe('false');
+    expect(accordionHeader.nativeElement.getAttribute('aria-controls')).toBe('accordion-body-1');
+  });
+
+  // Bonus Scenario 3: Accordion Item Body with ARIA attributes
+  it('should add appropriate ARIA attributes to accordion item bodies', () => {
+    // Arrange
+    fixture.detectChanges();
+    const accordionItem = fixture.debugElement.query(By.css('.accordion-item'));
+    const accordionBody = accordionItem.query(By.css('.accordion-body'));
+
+    // Assert
+    expect(accordionBody.nativeElement.getAttribute('aria-hidden')).toBe('true');
   });
 });
